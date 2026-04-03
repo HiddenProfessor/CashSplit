@@ -1,0 +1,99 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  memberships  GroupMember[]
+  createdGroups Group[]      @relation("GroupCreator")
+  expensesPaid Expense[]     @relation("ExpensePayer")
+  expenseShares ExpenseShare[]
+  paymentsSent     Payment[] @relation("PaymentFrom")
+  paymentsReceived Payment[] @relation("PaymentTo")
+}
+
+model Group {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime      @default(now())
+  createdById String
+  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  expenses    Expense[]
+  payments    Payment[]
+
+  @@index([createdById])
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+  userId   String
+  groupId  String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+model Expense {
+  id          String        @id @default(cuid())
+  title       String
+  notes       String?
+  amountCents Int
+  expenseDate DateTime
+  settledAt   DateTime?
+  createdAt   DateTime      @default(now())
+  groupId     String
+  paidById    String
+  group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy      User          @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Restrict)
+  shares      ExpenseShare[]
+
+  @@index([groupId, expenseDate])
+  @@index([groupId, settledAt])
+  @@index([paidById])
+}
+
+model ExpenseShare {
+  id          String   @id @default(cuid())
+  amountCents Int
+  userId      String
+  expenseId   String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([userId])
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  amountCents Int
+  paymentDate DateTime
+  note        String?
+  createdAt   DateTime @default(now())
+  groupId     String
+  fromUserId  String
+  toUserId    String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromUser    User     @relation("PaymentFrom", fields: [fromUserId], references: [id], onDelete: Restrict)
+  toUser      User     @relation("PaymentTo", fields: [toUserId], references: [id], onDelete: Restrict)
+
+  @@index([groupId, paymentDate])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
