@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { FormState } from "@/lib/form-state";
-import { createGroupSchema, parseAmountToCents, parseMemberEmails, recordPaymentSchema } from "@/lib/validators";
+import { createGroupSchema, parseAmountToCents, parseMemberUsernames, recordPaymentSchema } from "@/lib/validators";
 
 export async function leaveGroupAction(groupId: string): Promise<FormState> {
   const user = await requireUser();
@@ -49,7 +49,8 @@ export async function createGroupAction(_state: FormState, formData: FormData): 
   const parsed = createGroupSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description") || undefined,
-    memberEmails: formData.get("memberEmails") || undefined,
+    memberUsernames: formData.get("memberUsernames") || undefined,
+    currency: formData.get("currency") || undefined,
   });
 
   if (!parsed.success) {
@@ -59,22 +60,22 @@ export async function createGroupAction(_state: FormState, formData: FormData): 
     };
   }
 
-  const requestedEmails = parseMemberEmails(parsed.data.memberEmails);
-  const memberEmails = [...new Set([user.email, ...requestedEmails])];
+  const requestedUsernames = parseMemberUsernames(parsed.data.memberUsernames);
+  const memberUsernames = [...new Set([user.username, ...requestedUsernames])];
 
   const users = await db.user.findMany({
-    where: { email: { in: memberEmails } },
-    select: { id: true, email: true },
+    where: { username: { in: memberUsernames } },
+    select: { id: true, username: true },
   });
 
-  const foundEmails = new Set(users.map((entry) => entry.email));
-  const missingEmails = memberEmails.filter((email) => !foundEmails.has(email));
+  const foundUsernames = new Set(users.map((entry) => entry.username));
+  const missingUsernames = memberUsernames.filter((username) => !foundUsernames.has(username));
 
-  if (missingEmails.length > 0) {
+  if (missingUsernames.length > 0) {
     return {
       fieldErrors: {
-        memberEmails: [
-          `These users need to sign up first: ${missingEmails.join(", ")}`,
+        memberUsernames: [
+          `These users need to sign up first: ${missingUsernames.join(", ")}`,
         ],
       },
       message: "Every member must already have an account.",
@@ -85,6 +86,7 @@ export async function createGroupAction(_state: FormState, formData: FormData): 
     data: {
       name: parsed.data.name,
       description: parsed.data.description || null,
+      currency: parsed.data.currency || "SEK",
       createdById: user.id,
       members: {
         create: users.map((member) => ({

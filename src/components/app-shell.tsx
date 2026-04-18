@@ -5,7 +5,7 @@ import { logoutAction } from "@/app/actions/auth";
 type AppShellProps = {
   user: {
     name: string;
-    email: string;
+    username: string;
   };
   eyebrow: string;
   title: string;
@@ -45,7 +45,7 @@ export function AppShell({
             <div className="flex w-full flex-col items-start gap-3 rounded-[1.25rem] border border-line bg-white/70 p-4 sm:w-auto sm:min-w-64 sm:items-end sm:rounded-[1.5rem]">
               <div className="text-sm">
                 <p className="font-semibold">{user.name}</p>
-                <p className="text-muted">{user.email}</p>
+                <p className="text-muted">@{user.username}</p>
               </div>
               <form action={logoutAction}>
                 <button type="submit" className="w-full rounded-full border border-line-strong px-4 py-2 text-sm font-semibold transition hover:border-foreground sm:w-auto">

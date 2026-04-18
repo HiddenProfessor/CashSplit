@@ -4,7 +4,13 @@ const moneyPattern = /^\d+(?:[.,]\d{1,2})?$/;
 
 export const signUpSchema = z.object({
   name: z.string().trim().min(2, "Use at least 2 characters.").max(60, "Keep it under 60 characters."),
-  email: z.email("Enter a valid email address.").trim().toLowerCase(),
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, "Use at least 3 characters.")
+    .max(30, "Keep it under 30 characters.")
+    .regex(/^[a-z0-9_.-]+$/, "Only letters, numbers, dots, hyphens, and underscores."),
   password: z
     .string()
     .min(8, "Use at least 8 characters.")
@@ -13,14 +19,15 @@ export const signUpSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.email("Enter a valid email address.").trim().toLowerCase(),
+  username: z.string().trim().toLowerCase().min(1, "Enter your username."),
   password: z.string().min(1, "Enter your password."),
 });
 
 export const createGroupSchema = z.object({
   name: z.string().trim().min(3, "Use at least 3 characters.").max(80, "Keep it under 80 characters."),
   description: z.string().trim().max(240, "Keep it under 240 characters.").optional(),
-  memberEmails: z.string().trim().max(500, "Keep the member list shorter.").optional(),
+  memberUsernames: z.string().trim().max(500, "Keep the member list shorter.").optional(),
+  currency: z.string().trim().min(3).max(3).toUpperCase().optional(),
 });
 
 export const createExpenseSchema = z.object({
@@ -62,7 +69,7 @@ export function parseAmountToCents(rawAmount: string) {
   return Number(wholePart) * 100 + Number(decimalPart.padEnd(2, "0").slice(0, 2));
 }
 
-export function parseMemberEmails(input?: string | null) {
+export function parseMemberUsernames(input?: string | null) {
   if (!input) {
     return [];
   }

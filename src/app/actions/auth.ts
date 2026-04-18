@@ -12,7 +12,7 @@ import { loginSchema, signUpSchema } from "@/lib/validators";
 export async function signupAction(_state: FormState, formData: FormData): Promise<FormState> {
   const parsed = signUpSchema.safeParse({
     name: formData.get("name"),
-    email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
 
@@ -24,14 +24,14 @@ export async function signupAction(_state: FormState, formData: FormData): Promi
   }
 
   const existingUser = await db.user.findUnique({
-    where: { email: parsed.data.email },
+    where: { username: parsed.data.username },
     select: { id: true },
   });
 
   if (existingUser) {
     return {
-      fieldErrors: { email: ["That email is already registered."] },
-      message: "Use a different email or log in instead.",
+      fieldErrors: { username: ["That username is already taken."] },
+      message: "Choose a different username or log in instead.",
     };
   }
 
@@ -40,7 +40,7 @@ export async function signupAction(_state: FormState, formData: FormData): Promi
   const user = await db.user.create({
     data: {
       name: parsed.data.name,
-      email: parsed.data.email,
+      username: parsed.data.username,
       passwordHash,
     },
     select: { id: true },
@@ -53,19 +53,19 @@ export async function signupAction(_state: FormState, formData: FormData): Promi
 
 export async function loginAction(_state: FormState, formData: FormData): Promise<FormState> {
   const parsed = loginSchema.safeParse({
-    email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
 
   if (!parsed.success) {
     return {
       fieldErrors: parsed.error.flatten().fieldErrors,
-      message: "Enter your email and password.",
+      message: "Enter your username and password.",
     };
   }
 
   const user = await db.user.findUnique({
-    where: { email: parsed.data.email },
+    where: { username: parsed.data.username },
     select: {
       id: true,
       passwordHash: true,
@@ -74,7 +74,7 @@ export async function loginAction(_state: FormState, formData: FormData): Promis
 
   if (!user) {
     return {
-      message: "No account matched that email and password.",
+      message: "No account matched that username and password.",
     };
   }
 
@@ -82,7 +82,7 @@ export async function loginAction(_state: FormState, formData: FormData): Promis
 
   if (!isValidPassword) {
     return {
-      message: "No account matched that email and password.",
+      message: "No account matched that username and password.",
     };
   }
 

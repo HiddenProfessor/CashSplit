@@ -11,7 +11,7 @@ datasource db {
 model User {
   id           String        @id @default(cuid())
   name         String
-  email        String        @unique
+  username     String        @unique
   passwordHash String
   createdAt    DateTime      @default(now())
   memberships  GroupMember[]
@@ -26,6 +26,7 @@ model Group {
   id          String        @id @default(cuid())
   name        String
   description String?
+  currency    String        @default("SEK")
   createdAt   DateTime      @default(now())
   createdById String
   createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Cascade)
@@ -50,15 +51,17 @@ model GroupMember {
 }
 
 model Expense {
-  id          String        @id @default(cuid())
-  title       String
-  notes       String?
-  amountCents Int
-  expenseDate DateTime
-  settledAt   DateTime?
-  createdAt   DateTime      @default(now())
-  groupId     String
-  paidById    String
+  id            String        @id @default(cuid())
+  title         String
+  notes         String?
+  amountCents   Int
+  currency      String        @default("SEK")
+  exchangeRate  Float         @default(1.0)
+  expenseDate   DateTime
+  settledAt     DateTime?
+  createdAt     DateTime      @default(now())
+  groupId       String
+  paidById      String
   group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
   paidBy      User          @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Restrict)
   shares      ExpenseShare[]

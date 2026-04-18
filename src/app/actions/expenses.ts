@@ -125,6 +125,12 @@ export async function createExpenseAction(
   const splitMode = parseSplitMode(formData.get("splitMode"));
   const rawSplitShares = parseRawSplitShares(formData.get("splitShares"));
 
+  const expenseCurrency = (formData.get("expenseCurrency") as string)?.trim().toUpperCase() || group.currency;
+  const rawExchangeRate = formData.get("exchangeRate");
+  const exchangeRate = expenseCurrency !== group.currency && rawExchangeRate
+    ? Math.max(0.0001, Number(String(rawExchangeRate).replace(",", ".")) || 1)
+    : 1;
+
   const memberIds = new Set(group.members.map((member) => member.userId));
   let shareAllocations: Array<{ userId: string; amountCents: number }>;
 
@@ -176,6 +182,8 @@ export async function createExpenseAction(
       title: parsed.data.title,
       notes: parsed.data.notes || null,
       amountCents,
+      currency: expenseCurrency,
+      exchangeRate,
       expenseDate: new Date(parsed.data.expenseDate),
       groupId,
       paidById: parsed.data.paidById,

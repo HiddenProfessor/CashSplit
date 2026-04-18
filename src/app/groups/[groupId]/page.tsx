@@ -35,7 +35,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
             select: {
               id: true,
               name: true,
-              email: true,
+              username: true,
             },
           },
         },
@@ -113,7 +113,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const memberBalances = group.members.map((member) => ({
     userId: member.userId,
     name: member.user.name,
-    email: member.user.email,
+    username: member.user.username,
     balanceCents: balanceMap[member.userId] ?? 0,
   }));
   const settlements = buildSettlementPlan(memberBalances);
@@ -142,13 +142,14 @@ export default async function GroupPage({ params }: GroupPageProps) {
             </article>
             <article className="glass-panel rounded-[1.5rem] p-4 sm:rounded-[1.75rem] sm:p-5 col-span-2 xl:col-span-1">
               <p className="text-sm text-muted">Open balance pool</p>
-              <p className="mt-3 text-3xl font-semibold">{formatCurrency(openSpend)}</p>
+              <p className="mt-3 text-3xl font-semibold">{formatCurrency(openSpend, group.currency)}</p>
             </article>
           </div>
 
           <ExpenseForm
             groupId={group.id}
             defaultPayerId={user.id}
+            groupCurrency={group.currency}
             members={group.members.map((member) => ({
               userId: member.userId,
               name: member.user.name,
@@ -165,10 +166,10 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 <article key={member.userId} className="flex flex-col gap-3 rounded-[1.25rem] border border-line bg-white/72 p-4 sm:rounded-[1.5rem] sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-semibold">{member.name}</p>
-                    <p className="text-sm text-muted">{member.email}</p>
+                    <p className="text-sm text-muted">@{member.username}</p>
                   </div>
                   <div className={`rounded-full px-4 py-2 text-sm font-semibold ${member.balanceCents >= 0 ? "bg-success-soft text-success" : "bg-danger-soft text-danger"}`}>
-                    {describeBalance(member.balanceCents)}
+                    {describeBalance(member.balanceCents, group.currency)}
                   </div>
                 </article>
               ))}
@@ -194,7 +195,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                   ) : (
                     settlements.map((settlement) => (
                       <article key={`${settlement.from}-${settlement.to}-${settlement.amountCents}`} className="rounded-[1.5rem] border border-line bg-white/72 p-4 text-sm leading-7">
-                        <span className="font-semibold">{settlement.from}</span> pays <span className="font-semibold">{settlement.to}</span> <span className="font-semibold text-accent-deep">{formatCurrency(settlement.amountCents)}</span>
+                        <span className="font-semibold">{settlement.from}</span> pays <span className="font-semibold">{settlement.to}</span> <span className="font-semibold text-accent-deep">{formatCurrency(settlement.amountCents, group.currency)}</span>
                       </article>
                     ))
                   )}
@@ -273,14 +274,14 @@ export default async function GroupPage({ params }: GroupPageProps) {
                           </p>
                         </div>
                         <div className="rounded-full bg-accent-soft px-4 py-2 text-sm font-semibold text-accent-deep">
-                          {formatCurrency(expense.amountCents)}
+                          {formatCurrency(expense.amountCents, group.currency)}
                         </div>
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2 text-sm text-muted">
                         {expense.shares.map((share) => (
                           <span key={share.id} className="rounded-full border border-line bg-white/70 px-3 py-2">
-                            {share.user.name}: {formatCurrency(share.amountCents)}
+                            {share.user.name}: {formatCurrency(share.amountCents, group.currency)}
                           </span>
                         ))}
                       </div>
@@ -296,7 +297,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 <details>
                   <summary className="flex list-none cursor-pointer items-center justify-between rounded-full border border-line bg-white/70 px-4 py-2.5 text-sm text-muted transition hover:border-line-strong [&::-webkit-details-marker]:hidden">
                     <span>{settledExpenses.length} settled expense{settledExpenses.length !== 1 ? "s" : ""}</span>
-                    <span>{formatCurrency(settledTotal)}</span>
+                    <span>{formatCurrency(settledTotal, group.currency)}</span>
                   </summary>
                   <div className="mt-3 grid gap-2">
                     {settledExpenses.map((expense) => (
@@ -305,7 +306,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                           <span className="truncate font-medium">{expense.title}</span>
                           <span className="shrink-0 text-xs">{formatDate(expense.expenseDate)}</span>
                         </div>
-                        <span className="shrink-0 font-medium">{formatCurrency(expense.amountCents)}</span>
+                        <span className="shrink-0 font-medium">{formatCurrency(expense.amountCents, group.currency)}</span>
                       </div>
                     ))}
                   </div>
@@ -330,7 +331,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                           <span className="truncate font-medium">{payment.fromUser.name} &rarr; {payment.toUser.name}</span>
                           <span className="shrink-0 text-xs">{formatDate(payment.paymentDate)}</span>
                         </div>
-                        <span className="shrink-0 font-medium text-success">{formatCurrency(payment.amountCents)}</span>
+                        <span className="shrink-0 font-medium text-success">{formatCurrency(payment.amountCents, group.currency)}</span>
                       </div>
                     ))
                   )}

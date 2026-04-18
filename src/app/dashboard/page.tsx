@@ -66,6 +66,7 @@ export default async function DashboardPage() {
       id: group.id,
       name: group.name,
       description: group.description,
+      currency: group.currency,
       memberCount: group.members.length,
       expenseCount: openExpenses.length,
       lifetimeExpenseCount: group.expenses.length,
@@ -130,7 +131,7 @@ export default async function DashboardPage() {
                         </p>
                       </div>
                       <div className={`rounded-full px-4 py-2 text-sm font-semibold ${group.isSettled ? "bg-success-soft text-success" : "bg-accent-soft text-accent-deep"}`}>
-                        {group.isSettled ? "All clear" : describeBalance(group.currentUserBalance)}
+                        {group.isSettled ? "All clear" : describeBalance(group.currentUserBalance, group.currency)}
                       </div>
                     </div>
 
@@ -138,7 +139,7 @@ export default async function DashboardPage() {
                       <span className="rounded-full bg-badge px-3 py-2">{group.memberCount} members</span>
                       <span className="rounded-full bg-badge px-3 py-2">{group.expenseCount} open expenses</span>
                       <span className="rounded-full bg-badge px-3 py-2">{group.lifetimeExpenseCount} total entries</span>
-                      <span className="rounded-full bg-badge px-3 py-2">{formatCurrency(group.totalSpend)} lifetime tracked</span>
+                      <span className="rounded-full bg-badge px-3 py-2">{formatCurrency(group.totalSpend, group.currency)} lifetime tracked</span>
                     </div>
                   </Link>
                 ))

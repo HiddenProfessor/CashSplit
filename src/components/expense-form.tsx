@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useActionState } from "react";
 
 import { createExpenseAction } from "@/app/actions/expenses";
+import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { EMPTY_FORM_STATE } from "@/lib/form-state";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -62,12 +63,14 @@ type ExpenseFormProps = {
     name: string;
   }>;
   defaultPayerId: string;
+  groupCurrency: string;
 };
 
-export function ExpenseForm({ groupId, members, defaultPayerId }: ExpenseFormProps) {
+export function ExpenseForm({ groupId, members, defaultPayerId, groupCurrency }: ExpenseFormProps) {
   const action = createExpenseAction.bind(null, groupId);
   const [state, formAction] = useActionState(action, EMPTY_FORM_STATE);
   const [paidById, setPaidById] = useState(defaultPayerId);
+  const [expenseCurrency, setExpenseCurrency] = useState(groupCurrency);
   const [splitMode, setSplitMode] = useState<"equal" | "preset" | "custom">("equal");
   const [preset, setPreset] = useState<"25-75" | "50-50" | "75-25">("50-50");
   const [customShares, setCustomShares] = useState<Record<string, number>>(() =>
@@ -172,6 +175,30 @@ export function ExpenseForm({ groupId, members, defaultPayerId }: ExpenseFormPro
             <input name="expenseDate" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 outline-none transition focus:border-accent" />
             {state.fieldErrors?.expenseDate ? <p className="text-sm text-danger">{state.fieldErrors.expenseDate[0]}</p> : null}
           </label>
+        </div>
+
+        <div className={`grid gap-4 ${expenseCurrency !== groupCurrency ? "sm:grid-cols-2" : ""}`}>
+          <label className="block space-y-2 text-sm font-medium">
+            <span>Currency</span>
+            <select
+              name="expenseCurrency"
+              value={expenseCurrency}
+              onChange={(event) => setExpenseCurrency(event.currentTarget.value)}
+              className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 outline-none transition focus:border-accent"
+            >
+              {SUPPORTED_CURRENCIES.map((code) => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </select>
+          </label>
+
+          {expenseCurrency !== groupCurrency ? (
+            <label className="block space-y-2 text-sm font-medium">
+              <span>Exchange rate (1 {expenseCurrency} = ? {groupCurrency})</span>
+              <input name="exchangeRate" inputMode="decimal" placeholder="1.00" defaultValue="1" className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 outline-none transition focus:border-accent" />
+              {state.fieldErrors?.exchangeRate ? <p className="text-sm text-danger">{state.fieldErrors.exchangeRate[0]}</p> : null}
+            </label>
+          ) : null}
         </div>
 
         <label className="block space-y-2 text-sm font-medium">

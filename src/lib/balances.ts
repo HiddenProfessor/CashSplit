@@ -1,5 +1,6 @@
 type BalanceExpense = {
   amountCents: number;
+  exchangeRate?: number;
   paidById: string;
   shares: Array<{
     userId: string;
@@ -78,10 +79,11 @@ export function calculateBalances(
   const balances = Object.fromEntries(memberIds.map((memberId) => [memberId, 0]));
 
   for (const expense of expenses) {
-    balances[expense.paidById] = (balances[expense.paidById] ?? 0) + expense.amountCents;
+    const rate = expense.exchangeRate ?? 1;
+    balances[expense.paidById] = (balances[expense.paidById] ?? 0) + Math.round(expense.amountCents * rate);
 
     for (const share of expense.shares) {
-      balances[share.userId] = (balances[share.userId] ?? 0) - share.amountCents;
+      balances[share.userId] = (balances[share.userId] ?? 0) - Math.round(share.amountCents * rate);
     }
   }
 

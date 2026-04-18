@@ -25,9 +25,9 @@ export function SignUpForm() {
         </label>
 
         <label className="block space-y-2 text-sm font-medium">
-          <span>Email</span>
-          <input name="email" type="email" placeholder="you@example.com" className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 outline-none transition focus:border-accent" />
-          {state.fieldErrors?.email ? <p className="text-sm text-danger">{state.fieldErrors.email[0]}</p> : null}
+          <span>Username</span>
+          <input name="username" placeholder="lovisa" autoComplete="username" className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 outline-none transition focus:border-accent" />
+          {state.fieldErrors?.username ? <p className="text-sm text-danger">{state.fieldErrors.username[0]}</p> : null}
         </label>
 
         <label className="block space-y-2 text-sm font-medium">

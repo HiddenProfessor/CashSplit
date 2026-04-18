@@ -72,7 +72,7 @@ export async function getCurrentUser() {
     select: {
       id: true,
       name: true,
-      email: true,
+      username: true,
       createdAt: true,
     },
   });
